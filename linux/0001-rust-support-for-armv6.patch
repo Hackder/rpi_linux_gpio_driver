@@ -1,0 +1,91 @@
+From 5d9e8a17de6fdd229425d63f4528c7512df4a226 Mon Sep 17 00:00:00 2001
+From: Juraj Petras <jurkopetras@gmail.com>
+Date: Wed, 31 Dec 2025 16:03:15 +0000
+Subject: [PATCH] rust support for armv6
+
+---
+ arch/arm/Kconfig      |  1 +
+ arch/arm/Makefile     |  3 +++
+ arch/arm/lib/Makefile |  3 +++
+ arch/arm/lib/raise.c  | 12 ++++++++++++
+ rust/Makefile         |  3 ++-
+ 5 files changed, 21 insertions(+), 1 deletion(-)
+ create mode 100644 arch/arm/lib/raise.c
+
+diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+index d5bf16462..dcb186892 100644
+--- a/arch/arm/Kconfig
++++ b/arch/arm/Kconfig
+@@ -2,6 +2,7 @@
+ config ARM
+ 	bool
+ 	default y
++	select HAVE_RUST
+ 	select ARCH_32BIT_OFF_T
+ 	select ARCH_CORRECT_STACKTRACE_ON_KRETPROBE if HAVE_KRETPROBES && FRAME_POINTER && !ARM_UNWIND
+ 	select ARCH_HAS_BINFMT_FLAT
+diff --git a/arch/arm/Makefile b/arch/arm/Makefile
+index dee8c9fe2..bc54e38b5 100644
+--- a/arch/arm/Makefile
++++ b/arch/arm/Makefile
+@@ -330,3 +330,6 @@ define archhelp
+   echo
+   echo  '  multi_v7_lpae_defconfig     - multi_v7_defconfig with CONFIG_ARM_LPAE enabled'
+ endef
++
++LIBGCC_PATH := $(shell arm-linux-gnueabi-gcc -print-libgcc-file-name)
++libs-y += $(LIBGCC_PATH)
+diff --git a/arch/arm/lib/Makefile b/arch/arm/lib/Makefile
+index c3a0c4055..1227e3be8 100644
+--- a/arch/arm/lib/Makefile
++++ b/arch/arm/lib/Makefile
+@@ -40,6 +40,9 @@ obj-$(CONFIG_UACCESS_WITH_MEMCPY) += uaccess_with_memcpy.o
+ 
+ lib-$(CONFIG_MMU) += $(mmu-y)
+ 
++obj-y += div64.o
++obj-y += raise.o
++
+ ifeq ($(CONFIG_CPU_32v3),y)
+   lib-y	+= io-readsw-armv3.o io-writesw-armv3.o
+ else
+diff --git a/arch/arm/lib/raise.c b/arch/arm/lib/raise.c
+new file mode 100644
+index 000000000..57e72e6f3
+--- /dev/null
++++ b/arch/arm/lib/raise.c
+@@ -0,0 +1,12 @@
++#include <linux/kernel.h>
++#include <linux/bug.h>
++
++/*
++ * libgcc expects this function to exist for division by zero handling.
++ * Since we are the kernel, we just panic.
++ */
++int raise(int signo)
++{
++    panic("libgcc called raise(%d) - likely division by zero", signo);
++    return 0;
++}
+diff --git a/rust/Makefile b/rust/Makefile
+index c5571bab1..2d99f7975 100644
+--- a/rust/Makefile
++++ b/rust/Makefile
+@@ -263,12 +263,13 @@ bindgen_skip_c_flags := -mno-fp-ret-in-387 -mpreferred-stack-boundary=% \
+ BINDGEN_TARGET_x86	:= x86_64-linux-gnu
+ BINDGEN_TARGET_arm64	:= aarch64-linux-gnu
+ BINDGEN_TARGET_loongarch	:= loongarch64-linux-gnusf
++BINDGEN_TARGET_arm	:= arm-linux-gnueabi
+ BINDGEN_TARGET		:= $(BINDGEN_TARGET_$(SRCARCH))
+ 
+ # All warnings are inhibited since GCC builds are very experimental,
+ # many GCC warnings are not supported by Clang, they may only appear in
+ # some configurations, with new GCC versions, etc.
+-bindgen_extra_c_flags = -w --target=$(BINDGEN_TARGET)
++bindgen_extra_c_flags = -w --target=arm-unknown-linux-gnueabi
+ 
+ # Auto variable zero-initialization requires an additional special option with
+ # clang that is going to be removed sometime in the future (likely in
+-- 
+2.43.0
+

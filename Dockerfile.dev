@@ -1,0 +1,19 @@
+FROM ubuntu:24.04
+
+RUN apt update && apt upgrade -y && \
+    apt install build-essential bc bison flex libssl-dev wget curl git gcc-arm-linux-gnueabi libncurses5-dev tmux file cpio unzip rsync -y
+
+RUN apt install -y clang lld llvm
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+
+RUN /root/.cargo/bin/rustup default 1.84.1
+RUN /root/.cargo/bin/rustup target add arm-unknown-linux-gnueabi
+RUN /root/.cargo/bin/rustup component add rust-src
+RUN /root/.cargo/bin/cargo install bindgen-cli
+
+RUN wget https://github.com/neovim/neovim/releases/latest/download/nvim-linux-arm64.tar.gz && \
+    tar xzvf nvim-linux-arm64.tar.gz && \
+    mv nvim-linux-arm64 /usr/local/neovim && \
+    ln -s /usr/local/neovim/bin/nvim /usr/local/bin/nvim
+
+WORKDIR /home/volume

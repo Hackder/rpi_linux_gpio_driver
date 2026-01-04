@@ -1,0 +1,8 @@
+# System files
+.DS_Store
+
+# Dev files
+container_mount/
+
+# Build files
+output/
