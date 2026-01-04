@@ -92,6 +92,11 @@ WORKDIR /home
 RUN cp ./rust-driver/rust_out_of_tree.ko ./rootfs/rust_out_of_tree.ko
 
 # -----------------------------------
+# Overlay
+# -----------------------------------
+COPY ./userdata /home/rootfs/userdata
+
+# -----------------------------------
 # Generate the final image
 # -----------------------------------
 COPY ./gen_image.cfg .
