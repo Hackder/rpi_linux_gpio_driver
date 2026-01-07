@@ -5,10 +5,9 @@ ARCH ?= arm
 CROSS_COMPILE ?= arm-linux-gnueabi-
 LLVM ?= 1
 LLVM_IAS ?= 0
-KRUSTFLAGS ?= "--target=arm-unknown-linux-gnueabi"
 
 
 default:
-	$(MAKE) -C $(KDIR) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) M=$$PWD LLVM=$(LLVM) LLVM_IAS=$(LLVM_IAS) KRUSTFLAGS=$(KRUSTFLAGS) modules
+	$(MAKE) -C $(KDIR) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) M=$$PWD LLVM=$(LLVM) LLVM_IAS=$(LLVM_IAS) modules
 clean:
 	$(MAKE) -C $(KDIR) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) M=$$PWD clean

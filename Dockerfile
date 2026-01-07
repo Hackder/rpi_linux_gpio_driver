@@ -31,11 +31,11 @@ RUN mkdir -p firmware && \
     wget https://raw.githubusercontent.com/raspberrypi/firmware/f1ea7092589bc9627c23916132baa7841932b707/boot/{bootcode.bin,fixup.dat,start.elf} && \
     cd ..
 
-RUN git clone -b rpi-6.12.y --depth 1 https://github.com/raspberrypi/linux.git
+RUN git clone -b rpi-6.18.y --depth 1 https://github.com/raspberrypi/linux.git
 
 # Patch the kernel to support rust for armv6 (not officially supported as of 6.12)
-COPY ./linux/0001-rust-support-for-armv6.patch .
-RUN cd linux && patch -p1 < ../0001-rust-support-for-armv6.patch
+COPY ./linux/0001-rust-for-armv6.patch .
+RUN cd linux && patch -p1 < ../0001-rust-for-armv6.patch
 
 
 # Cross compile env setup
@@ -52,7 +52,7 @@ RUN make bcmrpi_defconfig
 COPY ./linux/.config .config
 
 # Build the kernel
-RUN make LLVM=1 LLVM_IAS=0 KRUSTFLAGS="--target=arm-unknown-linux-gnueabi" -j$(nproc) zImage modules dtbs
+RUN make LLVM=1 LLVM_IAS=0 -j$(nproc) zImage modules dtbs
 
 # Extract bootfs files
 WORKDIR /home
