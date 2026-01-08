@@ -2,7 +2,7 @@
 
 This repository contains a custom Linux kernel build for the Raspberry Pi (specifically targeting ARMv6/Pi Zero W) with enabled Rust support, a custom Rust GPIO driver, and a minimal userspace based on Busybox.
 
-<video src="docs/video.mp4" controls="controls" width="100%"></video>
+https://github.com/user-attachments/assets/a629234d-c4de-4302-af05-a3449692b382
 
 ## Quickstart
 
