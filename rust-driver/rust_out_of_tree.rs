@@ -91,11 +91,11 @@ impl MiscDevice for RustMiscDevice {
         pr_info!("Writing to Rust Misc Device Sample\n");
 
         let mut inner = me.inner.lock();
-        let len = iov.copy_from_iter_vec(&mut inner.buf, GFP_KERNEL)?;
 
         let Inner { gpio, buf } = &mut *inner;
 
-        let mut input = core::str::from_utf8(buf.as_slice())?.trim();
+        let len = iov.copy_from_iter_vec(buf, GFP_KERNEL)?;
+        let mut input = core::str::from_utf8(buf.as_slice())?;
 
         if let Some(last_newline) = input.rfind('\n') {
             input = &input[..last_newline + 1];
