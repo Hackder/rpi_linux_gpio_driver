@@ -23,6 +23,7 @@ Upon boot, press enter and you will be dropped into a shell prompt.
 
 1. Load the driver with: `insmod rust_out_of_tree.ko`
 2. Use the driver, for example play a song: `cat userdata/pirates.txt > /dev/rust_out_of_tree`
+3. You can also try some morse code: `echo -e "mHELLO WORLD" > /dev/rust_out_of_tree`
 
 ### Detailed usage
 
@@ -33,6 +34,11 @@ There are two commands available:
 
 1. `t<frequency> <duration>` - Plays a tone at the specified frequency (in hz) for the specified duration (in microseconds).
 2. `m<text>` - Plays a morse code message.
+
+### Creating instruction files from MIDI files
+
+You can use the tool in the `generator` directory. It's a simple Python script that will take a MIDI file and print out the instructions.
+Save them to a file and copy it to the `userdata` directory. This directory is automatically copied into the image at build time.
 
 ---
 
