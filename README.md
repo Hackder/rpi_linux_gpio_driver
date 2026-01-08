@@ -12,6 +12,28 @@ To build the complete SD card image, simply run the build script:
 
 This command triggers a Docker-based build process. Once completed, the final artifacts, including the SD card image, will be available in the `./output` directory.
 
+## Hardware
+
+The driver assumes that some sort of beeper or speaker is connected to **GPIO 17**.
+The PI will toggle this pin in the desired frequency to generate sounds.
+
+## Usage
+
+Upon boot, press enter and you will be dropped into a shell prompt.
+
+1. Load the driver with: `insmod rust_out_of_tree.ko`
+2. Use the driver, for example play a song: `cat userdata/pirates.txt > /dev/rust_out_of_tree`
+
+### Detailed usage
+
+The driver is a miscdevice. It exposes a file `/dev/rust_out_of_tree` which takes input by writing to it.
+You should write lines, where each line is a command.
+
+There are two commands available:
+
+1. `t<frequency> <duration>` - Plays a tone at the specified frequency (in hz) for the specified duration (in microseconds).
+2. `m<text>` - Plays a morse code message.
+
 ---
 
 # Kernel Build with Rust Support
@@ -25,12 +47,7 @@ The build is performed in an Ubuntu 24.04 container with the following key compo
 *   **Bindgen**: `bindgen-cli` (v0.72.1) is used to generate C bindings for Rust.
 
 ## Kernel Patches & ARMv6 Support
-The kernel source (branch `rpi-6.12.y`) is patched to enable Rust support for ARMv6, which is not officially supported upstream. The patch `linux/0001-rust-support-for-armv6.patch` performs the following critical modifications:
-
-*   **Enabling Rust**: Adds `select HAVE_RUST` to `arch/arm/Kconfig`.
-*   **Linking libgcc**: Modifies `arch/arm/Makefile` to link against `libgcc`. This is required because the Rust compiler expects symbols like `__aeabi_uldivmod` (used for 64-bit division) to be defined, which are provided by this library.
-*   **Missing Symbols**: Adds `div64.o` to the build and implements a `raise` function (in `arch/arm/lib/raise.c`) which handles division-by-zero exceptions expected by `libgcc`.
-*   **Bindgen Configuration**: Updates `rust/Makefile` to ensure the correct target (`arm-linux-gnueabi`) is passed to bindgen.
+The kernel source (branch `rpi-6.18.y`) is patched to enable Rust support for ARMv6, which is not officially supported upstream. The patch `linux/0001-rust-for-armv6.patch` enables this.
 
 ## Busybox
 Busybox is built as a static binary to provide essential utilities.
