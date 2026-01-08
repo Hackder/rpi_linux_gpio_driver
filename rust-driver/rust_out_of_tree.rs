@@ -3,16 +3,17 @@
 use core::pin::Pin;
 
 use kernel::{
+    bindings::gpio_desc,
     c_str,
     fs::{File, Kiocb},
-    iov::{IovIterSource},
+    iov::IovIterSource,
     miscdevice::{MiscDevice, MiscDeviceOptions, MiscDeviceRegistration},
     new_mutex,
     prelude::*,
-    sync::{Mutex},
-    bindings::gpio_desc,
+    sync::Mutex,
 };
 
+const OUTPUT_GPIO: u32 = 17;
 const MORSE_UNIT_US: u64 = 100_000;
 const MORSE_FREQ: u64 = 1000;
 
@@ -62,7 +63,7 @@ impl MiscDevice for RustMiscDevice {
     fn open(_file: &File, _misc: &MiscDeviceRegistration<Self>) -> Result<Pin<KBox<Self>>> {
         pr_info!("Opening Rust Misc Device Sample\n");
 
-        let gpio = match GpioOutputPin::new(17) {
+        let gpio = match GpioOutputPin::new(OUTPUT_GPIO) {
             Ok(gpio) => gpio,
             Err(err) => {
                 pr_err!("-> Failed to create GpioOutputPin: {:?}", err);
@@ -175,15 +176,16 @@ impl PinnedDrop for RustMiscDevice {
     }
 }
 
-const GPIOD_FLAGS_BIT_DIR_SET: c_int =        1 << 0;
-const GPIOD_FLAGS_BIT_DIR_OUT: c_int =        1 << 1;
-const GPIOD_FLAGS_BIT_DIR_VAL: c_int =        1 << 2;
-const GPIOD_FLAGS_BIT_OPEN_DRAIN: c_int =     1 << 3;
+const GPIOD_FLAGS_BIT_DIR_SET: c_int = 1 << 0;
+const GPIOD_FLAGS_BIT_DIR_OUT: c_int = 1 << 1;
+const GPIOD_FLAGS_BIT_DIR_VAL: c_int = 1 << 2;
+const GPIOD_FLAGS_BIT_OPEN_DRAIN: c_int = 1 << 3;
 
-const GPIOD_ASIS: c_int      = 0;
-const GPIOD_IN: c_int        = GPIOD_FLAGS_BIT_DIR_SET;
-const GPIOD_OUT_LOW: c_int   = GPIOD_FLAGS_BIT_DIR_SET | GPIOD_FLAGS_BIT_DIR_OUT;
-const GPIOD_OUT_HIGH: c_int  = GPIOD_FLAGS_BIT_DIR_SET | GPIOD_FLAGS_BIT_DIR_OUT | GPIOD_FLAGS_BIT_DIR_VAL;
+const GPIOD_ASIS: c_int = 0;
+const GPIOD_IN: c_int = GPIOD_FLAGS_BIT_DIR_SET;
+const GPIOD_OUT_LOW: c_int = GPIOD_FLAGS_BIT_DIR_SET | GPIOD_FLAGS_BIT_DIR_OUT;
+const GPIOD_OUT_HIGH: c_int =
+    GPIOD_FLAGS_BIT_DIR_SET | GPIOD_FLAGS_BIT_DIR_OUT | GPIOD_FLAGS_BIT_DIR_VAL;
 const GPIOD_OUT_LOW_OPEN_DRAIN: c_int = GPIOD_OUT_LOW | GPIOD_FLAGS_BIT_OPEN_DRAIN;
 const GPIOD_OUT_HIGH_OPEN_DRAIN: c_int = GPIOD_OUT_HIGH | GPIOD_FLAGS_BIT_OPEN_DRAIN;
 
@@ -279,7 +281,6 @@ unsafe extern "C" {
     unsafe fn gpiod_put(gpio: *mut gpio_desc);
 }
 
-
 fn morse_encode(c: char) -> Option<&'static str> {
     match c.to_ascii_uppercase() {
         'A' => Some(".-"),
@@ -327,11 +328,5 @@ fn div64(a: u64, b: u64) -> u64 {
 }
 
 fn sleep_us(us: u64) {
-    unsafe {
-        kernel::bindings::usleep_range_state(
-            us as usize,
-            us as usize,
-            TASK_UNINTERRUPTIBLE,
-        )
-    }
+    unsafe { kernel::bindings::usleep_range_state(us as usize, us as usize, TASK_UNINTERRUPTIBLE) }
 }
