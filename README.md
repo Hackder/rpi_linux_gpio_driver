@@ -6,6 +6,12 @@ https://github.com/user-attachments/assets/a629234d-c4de-4302-af05-a3449692b382
 
 ## Quickstart
 
+### Download prebuilt image
+
+You can download the prebuilt image from the [Releases page](https://github.com/Hackder/rpi_linux_gpio_driver/releases).
+
+### Build from scratch
+
 To build the complete SD card image, simply run the build script:
 
 ```bash
